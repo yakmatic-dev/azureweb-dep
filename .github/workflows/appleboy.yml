@@ -3,7 +3,7 @@ name: Build and deploy JAR app via SSH with PM2 - petclinic
 on:
   push:
     branches:
-      - tests
+      - test1
   workflow_dispatch:
 
 jobs:
