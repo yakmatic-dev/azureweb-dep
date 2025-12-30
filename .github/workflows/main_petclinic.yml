@@ -6,7 +6,7 @@ name: Build and deploy JAR app to Azure Web App - petclinic
 on:
   push:
     branches:
-      - test
+      - tests
   workflow_dispatch:
 
 jobs:
@@ -64,3 +64,4 @@ jobs:
           slot-name: 'Production'
           package: '*.jar'
           
+
