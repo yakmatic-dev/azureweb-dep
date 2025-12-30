@@ -1,4 +1,4 @@
-name: Build and deploy JAR app via SSH with PM2 - petclinic
+name: Build and deploy Dockerized JAR - petclinic
 
 on:
   push:
@@ -23,13 +23,18 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        run: mvn clean install
+        run: mvn clean package -DskipTests
 
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v4
+      - name: Build Docker image
+        run: |
+          docker build -t spring-petclinic:latest .
+
+      - name: Save Docker image as artifact
+        run: docker save spring-petclinic:latest -o spring-petclinic.tar
+      - uses: actions/upload-artifact@v4
         with:
-          name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          name: docker-image
+          path: spring-petclinic.tar
 
   deploy:
     runs-on: ubuntu-latest
@@ -40,22 +45,22 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
-          name: java-app
+          name: docker-image
 
-      - name: Copy JAR to server via SCP
+      - name: Copy Docker image to server
         uses: appleboy/scp-action@v0.1.5
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "*.jar"
+          source: "spring-petclinic.tar"
           target: ${{ secrets.SERVER_DEPLOY_PATH }}
 
-      - name: Start/Restart app with PM2
+      - name: Load and run Docker container on server
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -63,17 +68,13 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            # Use home directory for PM2 to avoid permission issues
-            export PM2_HOME=$HOME/.pm2
+            cd ${{ secrets.SERVER_DEPLOY_PATH }}
 
-            # Stop existing app if running
-            pm2 delete spring-petclinic || true
+            # Load Docker image
+            docker load -i spring-petclinic.tar
 
-            # Start the new JAR
-            pm2 start ${{ secrets.SERVER_DEPLOY_PATH }}/spring-petclinic.jar \
-              --name spring-petclinic \
-              --interpreter java \
-              -- -jar ${{ secrets.SERVER_DEPLOY_PATH }}/spring-petclinic.jar --spring.profiles.active=prod
+            # Stop old container if running
+            docker rm -f spring-petclinic || true
 
-            # Save PM2 process list for auto restart on reboot
-            pm2 save
+            # Run new container
+            docker run -d --name spring-petclinic -p 8080:8080 spring-petclinic:latest
