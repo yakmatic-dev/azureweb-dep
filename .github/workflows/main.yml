@@ -7,7 +7,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
-  APP_PORT: 8080
+  # APP_PORT: 8080
   APP_NAME: 'biassist-web-ui'
   REPO_PATH: 'app'
   JAR_NAME: 'biassist-web-ui.jar'
@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "target/${{ env.JAR_NAME }}"
+          source: "target/*.jar"
           target: ~/${{ env.REPO_PATH }}
           rm: true
           overwrite: true
@@ -67,9 +67,9 @@ jobs:
             # pm2 stop ${{ env.APP_NAME }} 2>/dev/null || true
 
             echo "🚀 Starting Spring Boot app with PM2..."
-            pm2 start "java -jar target/${{ env.JAR_NAME }} --server.port=${{ env.APP_PORT }}" \
-              --name "${{ env.APP_NAME }}" \
-              --no-autorestart \
+             pm2 start "java -jar target/*.jar
+            #   --name "${{ env.APP_NAME }}" \
+            #   --no-autorestart \
               2>/dev/null || \
             pm2 restart ${{ env.APP_NAME }}
 
