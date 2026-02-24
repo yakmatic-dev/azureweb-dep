@@ -64,7 +64,7 @@ jobs:
             cd ${{ env.REPO_PATH }}
 
             # echo "🛑 Stopping existing application..."
-            # pm2 stop ${{ env.APP_NAME }} 2>/dev/null || true
+             pm2 stop ${{ env.APP_NAME }} 2>/dev/null || true
 
             echo "🚀 Starting Spring Boot app with PM2..."
              pm2 start "java -jar target/*.jar" \
