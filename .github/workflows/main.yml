@@ -47,7 +47,7 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           source: "target/*.jar"
           target: ${{ env.REPO_PATH }}
-          rm: true
+          # rm: true
           overwrite: true
 
       - name: Deploy on Staging VM
