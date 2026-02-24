@@ -9,7 +9,7 @@ env:
   JAVA_VERSION: '17'
   # APP_PORT: 8080
   APP_NAME: 'biassist-web-ui'
-  REPO_PATH: 'app'
+  REPO_PATH: '/mnt/app'
   JAR_NAME: 'biassist-web-ui.jar'
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
           source: "target/*.jar"
-          target: ~/${{ env.REPO_PATH }}
+          target: ${{ env.REPO_PATH }}
           rm: true
           overwrite: true
 
@@ -61,7 +61,7 @@ jobs:
           script: |
             set -e
             echo "🚀 Starting deployment"
-            cd ~/${{ env.REPO_PATH }}
+            cd ${{ env.REPO_PATH }}
 
             # echo "🛑 Stopping existing application..."
             # pm2 stop ${{ env.APP_NAME }} 2>/dev/null || true
